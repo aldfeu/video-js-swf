@@ -195,7 +195,7 @@ package{
         }
         
         private function onEchoCalled(pResponse:* = null):*{
-            Console.log('onEchoCalled');
+            //Console.log('onEchoCalled');
             return pResponse;
         }
 

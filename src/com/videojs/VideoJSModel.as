@@ -229,10 +229,10 @@ package com.videojs{
             broadcastEventExternally(ExternalEventName.ON_SRC_CHANGE, _src);
             initProvider();
 
-            //Console.log('autoplay', _autoplay, 'preload',_preload);
-            if(_preload){
+            //Console.log('autoplay', _autoplay);
+            if (_preload){
                 load();
-            } 
+            }
             if(_autoplay){
                 play();
             } 
@@ -477,6 +477,7 @@ package com.videojs{
                     var __newArgs:Array = [_jsEventProxyName, ExternalInterface.objectID].concat(__incomingArgs);
                     var __sanitizedArgs:Array = cleanObject(__newArgs);
                     ExternalInterface.call.apply(null, __sanitizedArgs);
+                    //Console.log(args);
                 }
             }
         }

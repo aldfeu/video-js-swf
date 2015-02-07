@@ -14,7 +14,8 @@ import flash.net.NetConnection;
 import flash.net.NetGroup;
 import flash.net.NetStream;
 
-//import com.akamai.osmf.AkamaiAdvancedStreamingPluginInfo;
+import com.akamai.osmf.AkamaiAdvancedStreamingPluginInfo;
+import com.akamai.osmf.elements.AkamaiF4MElement;
 
 import com.videojs.VideoJSModel;
 import com.videojs.events.VideoPlaybackEvent;
@@ -67,8 +68,6 @@ import org.osmf.traits.LoadTrait;
 import org.osmf.utils.TimeUtil;
 
 
-
-
   public class HDSProvider implements IProvider {
         
         private var _networkState:Number = NetworkState.NETWORK_EMPTY;
@@ -88,10 +87,11 @@ import org.osmf.utils.TimeUtil;
         private var _mediaElement:MediaElement;
         private var _layoutMetadata:LayoutMetadata;
         private var _playRequested:Boolean;
+        private var _pluginRequired:Boolean=true;
 
-        //private static const AKAMAI_PLUGIN_INFO:String = "com.akamai.osmf.AkamaiAdvancedStreamingPluginInfo";
-        //private static const AKAMAI_PLUGIN_INFO:String= 'http://players.edgesuite.net/flash/plugins/osmf/advanced-streaming-plugin/v3.4/osmf2.0/AkamaiAdvancedStreamingPlugin.swf';
-        //private static const forceRefAkamai:AkamaiAdvancedStreamingPluginInfo = null;			
+        private static const AKAMAI_PLUGIN_INFO:String = "com.akamai.osmf.AkamaiAdvancedStreamingPluginInfo";
+        //private static const AKAMAI_PLUGIN_INFO:String= 'http://players.edgesuite.net/flash/plugins/osmf/advanced-streaming-plugin/v3.6/osmf2.0/AkamaiAdvancedStreamingPlugin.swf';
+        private static const forceRefAkamai:AkamaiAdvancedStreamingPluginInfo = null;			
 
         private var _sprite:Sprite;
 
@@ -101,7 +101,6 @@ import org.osmf.utils.TimeUtil;
             _playRequested = false;
             _metadata = {};
             _mediaFactory = new DefaultMediaFactory();
-            //loadPlugin(AKAMAI_PLUGIN_INFO);
             initPlayer();
         }
 
@@ -167,6 +166,7 @@ import org.osmf.utils.TimeUtil;
 
         private function loadPlugin(source:String):void
         {
+            _pluginRequired = false;
             var pluginResource:MediaResourceBase;
             if (source.substr(0, 4) == "http" || source.substr(0, 4) == "file") {
                 // This is a URL, create a URLResource
@@ -198,7 +198,7 @@ import org.osmf.utils.TimeUtil;
             function onPluginLoaded(event:MediaFactoryEvent):void {
                 Console.log("Plugin LOAD SUCCESS!");
                 setupMediaFactoryListeners(false);
-                initPlayer();
+                loadMedia();
             }
 
             function onPluginLoadFailed(event:MediaFactoryEvent):void {
@@ -231,9 +231,7 @@ import org.osmf.utils.TimeUtil;
                         // check end of content and send event only if it is not the end.
                         if ( _mediaPlayer.currentTime < _mediaPlayer.duration && _mediaPlayer.currentTime - _mediaPlayer.duration > 1) {
                             _model.broadcastEventExternally(ExternalEventName.ON_BUFFER_EMPTY);
-                        } else {
-                            _model.broadcastEventExternally(ExternalEventName.ON_PLAYBACK_COMPLETE);
-                        }
+                        } 
                     }
                     break;
             }
@@ -299,9 +297,12 @@ import org.osmf.utils.TimeUtil;
                     _model.broadcastEvent(new VideoPlaybackEvent(VideoPlaybackEvent.ON_STREAM_CLOSE, {}));
                     _model.broadcastEventExternally(ExternalEventName.ON_PAUSE);
                     _model.broadcastEventExternally(ExternalEventName.ON_PLAYBACK_COMPLETE);
+                    seekBySeconds(0);
                     break;
               case TimeEvent.DURATION_CHANGE:
                     _model.broadcastEventExternally(ExternalEventName.ON_DURATION_CHANGE);
+                    break;
+              case TimeEvent.CURRENT_TIME_CHANGE:
                     break;
             }
         }
@@ -340,11 +341,7 @@ import org.osmf.utils.TimeUtil;
             //Console.log('onDynamicStreamEvent', event.toString());
             switch(event.type) {
                 case DynamicStreamEvent.NUM_DYNAMIC_STREAMS_CHANGE:
-                    var resources:DynamicStreamingResource = (_mediaElement as F4MElement).proxiedElement.resource as DynamicStreamingResource;	
-                    var streamItems:Vector.<DynamicStreamingItem> = resources.streamItems;
-                    _metadata.width = streamItems[0].width;
-                    _metadata.height = streamItems[0].height;
-                    _model.broadcastEventExternally(ExternalEventName.ON_METADATA, _metadata);
+                    _model.broadcastEventExternally(ExternalEventName.ON_METADATA);
 
                     break;
                 case DynamicStreamEvent.SWITCHING_CHANGE:
@@ -446,7 +443,8 @@ import org.osmf.utils.TimeUtil;
          * Should return a value that indicates the current playhead position, in seconds.
          */
         public function get time():Number {
-          return _mediaPlayer.currentTime;
+            //Console.log('get time', _mediaPlayer.currentTime);
+            return _mediaPlayer.currentTime;
         }
 
         /**
@@ -603,20 +601,25 @@ import org.osmf.utils.TimeUtil;
         public function load():void{
             if (_resource){
                 if (_resource.url == _src.f4m){
-                    Console.log('ressource already loaded');
+                    //Console.log('ressource already loaded');
                     return;
                 }
             }
 
-            var streamType:String = StreamType.LIVE_OR_RECORDED;
             _isLive = false;
-
             var url:FMSURL = new FMSURL(_src.f4m);
             if ( url.streamName.search(/@/) != -1 ) {
                 _isLive = true;
             }
-            //Console.log("loading", _src.f4m);
-            _resource = new StreamingURLResource(_src.f4m ,streamType);
+            _resource = new StreamingURLResource(_src.f4m ,StreamType.LIVE_OR_RECORDED);
+
+            if (_pluginRequired) {
+                loadPlugin(AKAMAI_PLUGIN_INFO);
+            } else {
+                loadMedia();
+            }
+        }
+        private function loadMedia():void{
             _mediaElement = _mediaFactory.createMediaElement(_resource );
 
             if (_mediaElement) {
@@ -632,7 +635,7 @@ import org.osmf.utils.TimeUtil;
                 _mediaContainer.addMediaElement( _mediaElement );
                 _mediaContainer.width = _sprite.stage.stageWidth;
                 _mediaContainer.height = _sprite.stage.stageHeight;
-                _sprite.addChild(_mediaContainer);            
+                _sprite.addChild(_mediaContainer);
                 _model.broadcastEventExternally(ExternalEventName.ON_LOAD_START);
             } else {
                 Console.log("ERROR CREATING MEDIA");
@@ -777,7 +780,8 @@ import org.osmf.utils.TimeUtil;
             var autoLabel:String = "Auto";
             _qualityLevels.push({label:autoLabel,pos:-1});
             if(_mediaPlayer.canPlay && _mediaPlayer.isDynamicStream) {
-                var dsResource:DynamicStreamingResource = (_mediaElement as F4MElement).proxiedElement.resource as DynamicStreamingResource
+                //Console.log((_mediaElement as AkamaiF4MElement).proxiedElement);
+                var dsResource:DynamicStreamingResource = (_mediaElement as AkamaiF4MElement).proxiedElement.resource as DynamicStreamingResource;
                 for (var i:int = 0; i < dsResource.streamItems.length; i++) {  
                     _qualityLevels.push({label:level2label(dsResource.streamItems[i]),pos:i});
                 }

@@ -16,6 +16,7 @@ import flash.net.NetStream;
 
 import com.akamai.osmf.AkamaiAdvancedStreamingPluginInfo;
 import com.akamai.osmf.elements.AkamaiF4MElement;
+import com.akamai.net.f4f.hds.AkamaiHTTPNetStream;
 
 import com.videojs.VideoJSModel;
 import com.videojs.events.VideoPlaybackEvent;
@@ -60,6 +61,7 @@ import org.osmf.net.StreamType;
 import org.osmf.net.StreamingURLResource;
 import org.osmf.net.DynamicStreamingResource;
 import org.osmf.net.DynamicStreamingItem;
+import org.osmf.net.NetStreamLoadTrait;
 import org.osmf.traits.DisplayObjectTrait;
 import org.osmf.traits.MediaTraitType;
 import org.osmf.traits.TimeTrait;
@@ -88,9 +90,10 @@ import org.osmf.utils.TimeUtil;
         private var _layoutMetadata:LayoutMetadata;
         private var _playRequested:Boolean;
         private var _pluginRequired:Boolean=true;
+        private var _qualityLevels:Array = [];
 
         private static const AKAMAI_PLUGIN_INFO:String = "com.akamai.osmf.AkamaiAdvancedStreamingPluginInfo";
-        //private static const AKAMAI_PLUGIN_INFO:String= 'http://players.edgesuite.net/flash/plugins/osmf/advanced-streaming-plugin/v3.6/osmf2.0/AkamaiAdvancedStreamingPlugin.swf';
+        //private static const AKAMAI_PLUGIN_INFO:String= 'http://players.edgesuite.net/flash/plugins/osmf/advanced-streaming-plugin/v3.7/osmf2.0/AkamaiAdvancedStreamingPlugin.swf';
         private static const forceRefAkamai:AkamaiAdvancedStreamingPluginInfo = null;			
 
         private var _sprite:Sprite;
@@ -395,6 +398,14 @@ import org.osmf.utils.TimeUtil;
                             break;
 
                         case MediaTraitType.DYNAMIC_STREAM:
+                            var nsLoadTrait:NetStreamLoadTrait = _mediaPlayer.media.getTrait(MediaTraitType.LOAD) as NetStreamLoadTrait;                      
+                            var netStream = (nsLoadTrait != null) ? (nsLoadTrait.netStream as AkamaiHTTPNetStream) : null;
+                            var dsResource:DynamicStreamingResource = ((netStream as AkamaiHTTPNetStream).hdsProperties.resource as DynamicStreamingResource);
+                            var autoLabel:String = "Auto";
+                            _qualityLevels.push({label:autoLabel,pos:-1});
+                            for (var i:int = 0; i < dsResource.streamItems.length; i++) {  
+                                _qualityLevels.push({label:level2label(dsResource.streamItems[i]),pos:i});
+                            }
                             break;
 
                         case MediaTraitType.LOAD:
@@ -776,17 +787,6 @@ import org.osmf.utils.TimeUtil;
         }
 
         public function get levels():Array{
-            var _qualityLevels:Array = [];
-            var autoLabel:String = "Auto";
-            _qualityLevels.push({label:autoLabel,pos:-1});
-            if(_mediaPlayer.canPlay && _mediaPlayer.isDynamicStream) {
-                //Console.log((_mediaElement as AkamaiF4MElement).proxiedElement);
-                var dsResource:DynamicStreamingResource = (_mediaElement as AkamaiF4MElement).proxiedElement.resource as DynamicStreamingResource;
-                for (var i:int = 0; i < dsResource.streamItems.length; i++) {  
-                    _qualityLevels.push({label:level2label(dsResource.streamItems[i]),pos:i});
-                }
-
-            }
             return _qualityLevels;
         }
 

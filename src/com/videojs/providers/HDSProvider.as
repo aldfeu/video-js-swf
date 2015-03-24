@@ -801,6 +801,7 @@ import org.osmf.utils.TimeUtil;
                     _levelSelected = pValue;
                     _mediaPlayer.autoDynamicStreamSwitch = false;
                     _mediaPlayer.switchDynamicStreamIndex(pValue);
+                    _mediaPlayer.seek(_mediaPlayer.currentTime);
                 }
                 return;
             }

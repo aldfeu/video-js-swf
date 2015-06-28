@@ -1,4 +1,5 @@
 package{
+    import com.videojs.utils.Console;
 
     import com.videojs.VideoJSApp;
     import com.videojs.events.VideoJSEvent;
@@ -60,7 +61,7 @@ package{
             //var _ctxAbout:ContextMenuItem = new ContextMenuItem("Copyright © 2014 Brightcove, Inc.", false, false);
             var _ctxMenu:ContextMenu = new ContextMenu();
             _ctxMenu.hideBuiltInItems();
-            _ctxMenu.customItems.push(_ctxVersion, _ctxAbout);
+            _ctxMenu.customItems.push(_ctxVersion);
             this.contextMenu = _ctxMenu;
 
         }
@@ -202,6 +203,10 @@ package{
 
         private function onAbortCalled():*{
             _app.model.abort();
+        }
+
+        private function onDiscontinuityCalled():*{
+            _app.model.discontinuity();
         }
 
         private function onGetPropertyCalled(pPropertyName:String = ""):*{

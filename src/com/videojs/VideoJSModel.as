@@ -227,16 +227,17 @@ package com.videojs{
             }
             else{
             _currentPlaybackType = PlaybackType.HTTP;
+            }
             broadcastEventExternally(ExternalEventName.ON_SRC_CHANGE, _src);
             initProvider();
 
-            //Console.log('autoplay', _autoplay);
+            Console.log('src autoplay', _autoplay);
+            Console.log('src preload', _preload);
             if (_preload){
                 load();
             }
             if(_autoplay){
-                _play();
-            }
+                play();
             }
         }
 

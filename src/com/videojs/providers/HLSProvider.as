@@ -273,6 +273,10 @@ package com.videojs.providers{
           return 0;
         }
 
+
+        public function discontinuity():void{
+        }
+
         /**
          * Should return a boolean value that indicates whether or not the current media
          * asset is playing.

@@ -531,6 +531,9 @@ import org.osmf.utils.TimeUtil;
             return _mediaPlayer.bytesTotal;
         }
 
+        public function discontinuity():void{
+        }
+
         /**
          * Should return a boolean value that indicates whether or not the current media
          * asset is playing.

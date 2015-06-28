@@ -2,9 +2,35 @@ CHANGELOG
 =========
 
 ## HEAD (Unreleased)
-_(none)_
+* Fixed an issue where an image from previous video could flash briefly while a new video is loaded ([view](https://github.com/videojs/video-js-swf/pull/167))
 
 --------------------
+
+## 4.7.1 (2015-06-23)
+* Fixed an issue where playback required two clisk to start when preload was not auto
+* @qpSHiNqp fix issue that would cause incorrect aspect ratios for some videos ([view](https://github.com/videojs/video-js-swf/pull/165))
+
+## 4.7.0 (2015-05-19)
+* @bc-bbay the preload attribute should be a string, not a boolean ([view](https://github.com/videojs/video-js-swf/pull/160))
+* @Wellming fix manual tests ([view](https://github.com/videojs/video-js-swf/pull/154))
+
+## 4.6.1 (2015-04-22)
+* @bclwhitaker append END_SEQUENCE properly in data generation mode ([view](https://github.com/videojs/video-js-swf/pull/152))
+
+## 4.6.0 (2015-04-16)
+* Add vjs_discontinuity ([view](https://github.com/videojs/video-js-swf/pull/150))
+* Don't call resume() on NetstreamPlayStart ([view](https://github.com/videojs/video-js-swf/pull/147))
+
+## 4.5.4 (2015-03-17)
+* Improved handling of the paused state, and the loadstart and canplay events ([view](https://github.com/videojs/video-js-swf/pull/139))
+* Fixed a potential XSS issue with the swf event callbacks ([view](https://github.com/videojs/video-js-swf/pull/143))
+* Prevented pause from firing after eneded ([view](https://github.com/videojs/video-js-swf/pull/144))
+
+## 4.5.3 (2015-01-22)
+* Paused should be true before a source has been set by default
+
+## 4.5.2 (2014-12-04)
+* Fixed an issue where Flash would crash when switching sources quickly ([view](https://github.com/videojs/video-js-swf/pull/131))
 
 ## 4.5.1 (2014-10-15)
 * Fixed an issue where changing the source immediately after seeking could cause an error ([view](https://github.com/videojs/video-js-swf/pull/125))

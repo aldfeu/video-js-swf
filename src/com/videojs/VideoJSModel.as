@@ -24,7 +24,6 @@ package com.videojs{
     import flash.media.Video;
     import flash.utils.ByteArray;
 
-
     public class VideoJSModel extends EventDispatcher{
 
         private var _masterVolume:SoundTransform;
@@ -120,6 +119,10 @@ package com.videojs{
 
         public function abort():void {
             _provider.abort();
+        }
+
+        public function discontinuity():void {
+            _provider.discontinuity();
         }
 
         public function get backgroundColor():Number{
@@ -223,9 +226,7 @@ package com.videojs{
                 _currentPlaybackType = PlaybackType.HDS;
             }
             else{
-                _currentPlaybackType = PlaybackType.HTTP;
-            }
-            //Console.log(' src play', _currentPlaybackType);
+            _currentPlaybackType = PlaybackType.HTTP;
             broadcastEventExternally(ExternalEventName.ON_SRC_CHANGE, _src);
             initProvider();
 
@@ -234,8 +235,9 @@ package com.videojs{
                 load();
             }
             if(_autoplay){
-                play();
-            } 
+                _play();
+            }
+            }
         }
 
         public function get rtmpConnectionURL():String{
@@ -264,7 +266,7 @@ package com.videojs{
                 _currentPlaybackType = PlaybackType.RTMP;
                 initProvider();
             }
-            Console.log('rtmpstream play', _currentPlaybackType);
+
             if(_autoplay){
                 play();
             }
@@ -291,7 +293,6 @@ package com.videojs{
             }
             Console.log('srcFromFlashVars play', _currentPlaybackType);
             initProvider();
-
             if(_autoplay){
                 play();
             }
@@ -305,7 +306,7 @@ package com.videojs{
             _poster = pValue;
             broadcastEvent(new VideoJSEvent(VideoJSEvent.POSTER_SET));
         }
-        
+
         public function get parameters():Object{
             return _parameters;
         }
@@ -452,7 +453,7 @@ package com.videojs{
             if(_provider){
                 return _provider.paused;
             }
-            return false;
+            return true;
         }
 
         /**
@@ -477,7 +478,6 @@ package com.videojs{
                     var __newArgs:Array = [_jsEventProxyName, ExternalInterface.objectID].concat(__incomingArgs);
                     var __sanitizedArgs:Array = cleanObject(__newArgs);
                     ExternalInterface.call.apply(null, __sanitizedArgs);
-                    //Console.log(args);
                 }
             }
         }
@@ -691,11 +691,10 @@ package com.videojs{
                 _provider = null;
             }
             var __src:Object;
-
             // We need to determine which provider to load, based on the values of our exposed properties.
-
             switch(_mode){
                 case PlayerMode.VIDEO:
+
                     if(_currentPlaybackType == PlaybackType.HTTP){
                         __src = {
                             path: _src

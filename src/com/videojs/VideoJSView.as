@@ -234,7 +234,7 @@ package com.videojs{
             _uiPosterImage.visible = false;
         }
         
-        private function onMetaData(e:VideoPlaybackEvent):void{        
+        private function onMetaData(e:VideoPlaybackEvent):void{
             sizeVideoObject();
         }
 

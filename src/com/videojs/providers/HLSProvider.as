@@ -1,5 +1,6 @@
 package com.videojs.providers{
 
+  import flash.display.Sprite;
   import flash.media.Video;
   import flash.utils.ByteArray;
   import flash.net.NetStream;
@@ -295,10 +296,6 @@ package com.videojs.providers{
          */
         public function get bytesTotal():int{
           return 0;
-        }
-
-
-        public function discontinuity():void{
         }
 
         /**

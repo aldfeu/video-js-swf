@@ -484,4 +484,3 @@ package com.videojs.providers{
         }
     }
 }
->>>>>>> mangui/master

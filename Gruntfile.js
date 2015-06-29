@@ -285,12 +285,15 @@ module.exports = function (grunt) {
       'dist',                             // build distribution
       'shell:git-add-dist-force',         // force add the distribution
       'tagrelease',                       // commit & tag the changes
-      'shell:git-push-stable',            // push changes to stable
-      'shell:git-push-tags',              // push version tag
+
+      'shell:git-push-origin-stable',     // push changes to your fork
+      'shell:git-push-upstream-stable',   // push changes to upstream
+      'shell:git-push-upstream-tags',     // push version tag
       'npm-publish',                      // publish to npm
       'shell:git-checkout-master',        // switch to master branch
       'shell:git-merge-stable',           // merge stable into master
-      'shell:git-push-master'             // push changes to master
+      'shell:git-push-origin-master',      // push changes to your fork
+      'shell:git-push-upstream-master'    // push changes upstream
     ]);
   });
 

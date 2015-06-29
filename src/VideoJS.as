@@ -31,6 +31,7 @@ package{
         private var _stageSizeTimer:Timer;
 
         public function VideoJS(){
+
             _stageSizeTimer = new Timer(250);
             _stageSizeTimer.addEventListener(TimerEvent.TIMER, onStageSizeTimerTick);
             addEventListener(Event.ADDED_TO_STAGE, onAddedToStage);
@@ -110,7 +111,7 @@ package{
 
             // Pass the whole parameters to the model so that any provider may refer it.
             _app.model.parameters = loaderInfo.parameters;
-            
+
             if(loaderInfo.parameters.mode != undefined){
                 _app.model.mode = loaderInfo.parameters.mode;
             }
@@ -127,8 +128,8 @@ package{
                 _app.model.autoplay = true;
             }
 
-            if(loaderInfo.parameters.preload === "none"){
-                _app.model.preload = false;
+            if(loaderInfo.parameters.preload != undefined && loaderInfo.parameters.preload != ""){
+                _app.model.preload = String(loaderInfo.parameters.preload);
             }
 
             if(loaderInfo.parameters.poster != undefined && loaderInfo.parameters.poster != ""){

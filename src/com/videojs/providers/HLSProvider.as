@@ -1,7 +1,5 @@
 package com.videojs.providers{
 
-  import flash.display.Sprite;
-
   import flash.media.Video;
   import flash.utils.ByteArray;
   import flash.net.NetStream;
@@ -19,6 +17,7 @@ package com.videojs.providers{
   import org.mangui.hls.constant.HLSTypes;
   import org.mangui.hls.HLSSettings;
   import org.mangui.hls.constant.HLSPlayStates;
+  import org.mangui.hls.constant.HLSSeekStates;
   import org.mangui.hls.utils.Log;
   import org.mangui.hls.utils.Params2Settings;
   import org.mangui.hls.model.Level;
@@ -35,7 +34,6 @@ package com.videojs.providers{
         private var _mediaWidth:Number;
         private var _mediaHeight:Number;
         private var _levelSelected : Number;
-
 
         private var _hlsState:String = HLSPlayStates.IDLE;
         private var _networkState:Number = NetworkState.NETWORK_EMPTY;
@@ -54,7 +52,7 @@ package com.videojs.providers{
         private var _bufferedTime:Number = 0;
 
         public function HLSProvider() {
-          Log.info("flashls 0.3.2");
+          Log.info("https://github.com/mangui/flashls/releases/tag/v0.4.1.1");
           _hls = new HLS();
 	  _levelSelected = -1;
           _model = VideoJSModel.getInstance();
@@ -64,6 +62,7 @@ package com.videojs.providers{
           _hls.addEventListener(HLSEvent.MANIFEST_LOADED,_manifestHandler);
           _hls.addEventListener(HLSEvent.MEDIA_TIME,_mediaTimeHandler);
           _hls.addEventListener(HLSEvent.PLAYBACK_STATE,_stateHandler);
+          _hls.addEventListener(HLSEvent.SEEK_STATE,_seekStateHandler);
           _hls.addEventListener(HLSEvent.LEVEL_SWITCH,_levelSwitchHandler);
         }
 
@@ -71,6 +70,7 @@ package com.videojs.providers{
           if(!_loop){
             _isEnded = true;
             _isPaused = true;
+            _isPlaying = false;
             _model.broadcastEvent(new VideoPlaybackEvent(VideoPlaybackEvent.ON_STREAM_CLOSE, {}));
             _model.broadcastEventExternally(ExternalEventName.ON_PAUSE);
             _model.broadcastEventExternally(ExternalEventName.ON_PLAYBACK_COMPLETE);
@@ -132,6 +132,10 @@ package com.videojs.providers{
                 _networkState = NetworkState.NETWORK_LOADING;
                 _readyState = ReadyState.HAVE_CURRENT_DATA;
                 _model.broadcastEventExternally(ExternalEventName.ON_BUFFER_EMPTY);
+                if(!_isPlaying) {
+                  _model.broadcastEventExternally(ExternalEventName.ON_RESUME);
+                  _isPlaying = true;
+                }
                 break;
               case HLSPlayStates.PLAYING:
                 _isPlaying = true;
@@ -141,12 +145,17 @@ package com.videojs.providers{
                 _networkState = NetworkState.NETWORK_LOADING;
                 _readyState = ReadyState.HAVE_ENOUGH_DATA;
                 _model.broadcastEventExternally(ExternalEventName.ON_BUFFER_FULL);
+                if(!_isPlaying) {
+                  _model.broadcastEventExternally(ExternalEventName.ON_RESUME);
+                  _isPlaying = true;
+                }
                 _model.broadcastEventExternally(ExternalEventName.ON_CAN_PLAY);
                 _model.broadcastEventExternally(ExternalEventName.ON_SEEK_COMPLETE);
                 _model.broadcastEvent(new VideoPlaybackEvent(VideoPlaybackEvent.ON_STREAM_START, {info:{}}));
                 break;
               case HLSPlayStates.PAUSED:
                 _isPaused = true;
+                _isPlaying = false;
                 _isEnded = false;
                 _isSeeking = false;
                 _networkState = NetworkState.NETWORK_LOADING;
@@ -156,6 +165,7 @@ package com.videojs.providers{
                 break;
               case HLSPlayStates.PAUSED_BUFFERING:
                 _isPaused = true;
+                _isPlaying = false;
                 _isEnded = false;
                 _networkState = NetworkState.NETWORK_LOADING;
                 _readyState = ReadyState.HAVE_CURRENT_DATA;
@@ -163,6 +173,20 @@ package com.videojs.providers{
                 break;
           }
         };
+
+
+        private function _seekStateHandler(event:HLSEvent):void {
+          switch(event.state) {
+            case HLSSeekStates.SEEKED:
+                _isSeeking = false;
+                _model.broadcastEventExternally(ExternalEventName.ON_SEEK_COMPLETE);
+                break;
+            case HLSSeekStates.SEEKING:
+                _isSeeking = true;
+                _model.broadcastEventExternally(ExternalEventName.ON_SEEK_START);
+                break;
+          }
+        }
 
         private function _levelSwitchHandler(event:HLSEvent):void {
             var levelIndex:Number = event.level;
@@ -177,9 +201,9 @@ package com.videojs.providers{
         {
           var newWidth:Number = _videoReference.videoWidth;
           var newHeight:Number =  _videoReference.videoHeight;
-          if  (newWidth != 0 && 
-               newHeight != 0 && 
-               newWidth != _mediaWidth && 
+          if  (newWidth != 0 &&
+               newHeight != 0 &&
+               newWidth != _mediaWidth &&
                newHeight != _mediaHeight)
           {
             _mediaWidth = newWidth;
@@ -513,7 +537,7 @@ package com.videojs.providers{
             _videoReference.clear();
           }
         }
-        
+
 
         public function endOfStream():void{
             throw "HLSProvider does not support endOfStream";
@@ -521,8 +545,12 @@ package com.videojs.providers{
 
         public function abort():void{
             throw "HLSProvider does not support abort";
-        }        
-        
+        }
+
+        public function discontinuity():void{
+            throw "HLSProvider does not support discontinuities";
+        }
+
         /**
          * Should return the number of stream levels that this content has.
          */
@@ -538,10 +566,10 @@ package com.videojs.providers{
         {
             if(_isManifestLoaded){
                 if (_levelSelected >= 0)
-                    return _hls.level;
+                    return _hls['level'];
                 else
                     return _levelSelected;
-            }
+        }
 	    return -1;
         }
 
@@ -579,7 +607,7 @@ package com.videojs.providers{
 	    Log.info("quality requested "+pLevel);
             if (pLevel != _levelSelected){
                 _levelSelected = pLevel;
-                _hls.level = pLevel;
+                _hls['level'] = pLevel;
                 _hls.stream.seek(_hls.position);
             }
         }
@@ -589,7 +617,7 @@ package com.videojs.providers{
           */
         public function get autoLevelEnabled():Boolean
         {
-            return _hls.autolevel;
+            return _hls['autolevel'];
         }
     }
 }

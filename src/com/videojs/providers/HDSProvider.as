@@ -89,11 +89,12 @@ import org.osmf.utils.TimeUtil;
         private var _mediaElement:MediaElement;
         private var _layoutMetadata:LayoutMetadata;
         private var _playRequested:Boolean;
+        private var _firstPlay:Boolean;
         private var _pluginRequired:Boolean=true;
         private var _qualityLevels:Array = [];
 
         private static const AKAMAI_PLUGIN_INFO:String = "com.akamai.osmf.AkamaiAdvancedStreamingPluginInfo";
-        //private static const AKAMAI_PLUGIN_INFO:String= 'http://players.edgesuite.net/flash/plugins/osmf/advanced-streaming-plugin/v3.7/osmf2.0/AkamaiAdvancedStreamingPlugin.swf';
+        //private static const AKAMAI_PLUGIN_INFO:String= 'http://players.edgesuite.net/flash/plugins/osmf/advanced-streaming-plugin/v3.4/osmf2.0/AkamaiAdvancedStreamingPlugin.swf';
         private static const forceRefAkamai:AkamaiAdvancedStreamingPluginInfo = null;			
 
         private var _sprite:Sprite;
@@ -104,6 +105,7 @@ import org.osmf.utils.TimeUtil;
             _playRequested = false;
             _metadata = {};
             _mediaFactory = new DefaultMediaFactory();
+            _firstPlay = false;
             initPlayer();
         }
 
@@ -199,7 +201,7 @@ import org.osmf.utils.TimeUtil;
             }
 
             function onPluginLoaded(event:MediaFactoryEvent):void {
-                Console.log("Plugin LOAD SUCCESS!");
+                //Console.log("Plugin LOAD SUCCESS!");
                 setupMediaFactoryListeners(false);
                 loadMedia();
             }
@@ -248,10 +250,10 @@ import org.osmf.utils.TimeUtil;
                     _readyState = ReadyState.HAVE_ENOUGH_DATA;
                     _model.broadcastEventExternally(ExternalEventName.ON_CAN_PLAY);
                     _model.broadcastEventExternally(ExternalEventName.ON_SEEK_COMPLETE);
-                    _model.broadcastEventExternally(ExternalEventName.ON_START);
                     _model.broadcastEventExternally(ExternalEventName.ON_RESUME);
                     break;
                 case MediaPlayerState.BUFFERING:
+                    _model.broadcastEventExternally(ExternalEventName.ON_SEEK_START);
                     _networkState = NetworkState.NETWORK_LOADING;
                     _readyState = ReadyState.HAVE_CURRENT_DATA;
                     break;
@@ -660,9 +662,16 @@ import org.osmf.utils.TimeUtil;
          * Called when the media asset should be played immediately.
          */
         public function play():void {
+            //Console.log('play called');
             if (_mediaPlayer.canPlay){
                 _mediaPlayer.play();
+                if ( _isLive){
+                    _model.broadcastEventExternally(ExternalEventName.ON_SEEK_START);
+                } else if (!_firstPlay){
+                    _model.broadcastEventExternally(ExternalEventName.ON_SEEK_START);
+                }
                 _model.broadcastEventExternally(ExternalEventName.ON_RESUME);
+                _firstPlay = true;
             } else {
                 _playRequested = true;
             }
@@ -675,16 +684,14 @@ import org.osmf.utils.TimeUtil;
             if (_mediaPlayer.canPause){
                 _mediaPlayer.pause();
                 _model.broadcastEventExternally(ExternalEventName.ON_PAUSE);
-            } else if (_mediaPlayer.playing) {
-                _mediaPlayer.stop();
-                _model.broadcastEventExternally(ExternalEventName.ON_PAUSE);
-            }
+            } 
         }
 
         /**
          * Called when the media asset should be resumed from a paused state.
          */
         public function resume():void {
+            //Console.log('resume called');
             if (_mediaPlayer.canPlay){
                 _mediaPlayer.play();
                 _model.broadcastEventExternally(ExternalEventName.ON_RESUME);
@@ -696,7 +703,6 @@ import org.osmf.utils.TimeUtil;
          */
         public function seekBySeconds(pTime:Number):void {
             if (!_mediaPlayer.seeking){
-                //Console.log('can seek', _mediaPlayer.canSeek, 'seeking',_mediaPlayer.seeking, 'seek to', pTime);
                 _mediaPlayer.seek(pTime);
             } else {
                 //Console.log('can seek', _mediaPlayer.canSeek, 'seeking',_mediaPlayer.seeking);

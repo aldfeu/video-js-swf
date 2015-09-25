@@ -234,9 +234,9 @@ package com.videojs{
             if (_preload){
                 load();
             }
-            if(_autoplay){
-                play();
-            }
+//            if(_autoplay){
+//                play();
+//            }
         }
 
         public function get rtmpConnectionURL():String{

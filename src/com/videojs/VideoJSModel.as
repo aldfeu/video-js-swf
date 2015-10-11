@@ -1,4 +1,5 @@
 package com.videojs{
+    import com.videojs.utils.Console;
 
     import com.videojs.events.VideoJSEvent;
     import com.videojs.events.VideoPlaybackEvent;
@@ -6,8 +7,8 @@ package com.videojs{
     import com.videojs.providers.HTTPVideoProvider;
     import com.videojs.providers.IProvider;
     import com.videojs.providers.RTMPVideoProvider;
-    import com.videojs.providers.HLSProvider;
-    import com.videojs.providers.HDSProvider;
+    import com.videojs.providers.HLSVideoProvider;
+    import com.videojs.providers.HDSVideoProvider;
     import com.videojs.structs.ExternalErrorEventName;
     import com.videojs.structs.ExternalEventName;
     import com.videojs.structs.PlaybackType;
@@ -46,6 +47,7 @@ package com.videojs{
         private var _src:String = "";
         private var _rtmpConnectionURL:String = "";
         private var _rtmpStream:String = "";
+        private var _parameters:Object;
 
         private static var _instance:VideoJSModel;
 
@@ -294,6 +296,13 @@ package com.videojs{
             else if(_preload == "auto"){
                 _provider.load();
             }
+        }
+
+        public function get parameters():Object{
+            return _parameters;
+        }
+        public function set parameters(pValue:Object):void{
+            _parameters = pValue;
         }
 
         public function get hasEnded():Boolean{
@@ -649,7 +658,7 @@ package com.videojs{
             } else if (obj is Array) {
                 var __sanitizedArray:Array = new Array();
 
-                for each (var __item in obj){
+                for each (var __item:* in obj){
                     __sanitizedArray.push(cleanObject(__item));
                 }
 
@@ -657,7 +666,7 @@ package com.videojs{
             } else if (typeof(obj) == 'object') {
                 var __sanitizedObject:Object = new Object();
 
-                for (var __i in obj){
+                for (var __i:* in obj){
                     __sanitizedObject[__i] = cleanObject(obj[__i]);
                 }
 

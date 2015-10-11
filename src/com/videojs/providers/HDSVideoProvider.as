@@ -70,7 +70,7 @@ import org.osmf.traits.LoadTrait;
 import org.osmf.utils.TimeUtil;
 
 
-  public class HDSProvider implements IProvider {
+  public class HDSVideoProvider implements IProvider {
         
         private var _networkState:Number = NetworkState.NETWORK_EMPTY;
         private var _readyState:Number = ReadyState.HAVE_NOTHING;
@@ -99,7 +99,7 @@ import org.osmf.utils.TimeUtil;
 
         private var _sprite:Sprite;
 
-        public function HDSProvider() {
+        public function HDSVideoProvider() {
             _model = VideoJSModel.getInstance();
             _levelSelected = -1;
             _playRequested = false;
@@ -109,7 +109,7 @@ import org.osmf.utils.TimeUtil;
             initPlayer();
         }
 
-        private function initPlayer(){
+        private function initPlayer():void{
             // thanks to @seniorflexdeveloper to provide a complete osmf event listening system. I just copied all events he used in his project videojs-osmf
             _mediaFactory.addEventListener(MediaFactoryEvent.MEDIA_ELEMENT_CREATE, onMediaFactoryEvent);
 
@@ -401,7 +401,7 @@ import org.osmf.utils.TimeUtil;
 
                         case MediaTraitType.DYNAMIC_STREAM:
                             var nsLoadTrait:NetStreamLoadTrait = _mediaPlayer.media.getTrait(MediaTraitType.LOAD) as NetStreamLoadTrait;                      
-                            var netStream = (nsLoadTrait != null) ? (nsLoadTrait.netStream as AkamaiHTTPNetStream) : null;
+                            var netStream:NetStream = (nsLoadTrait != null) ? (nsLoadTrait.netStream as AkamaiHTTPNetStream) : null;
                             var dsResource:DynamicStreamingResource = ((netStream as AkamaiHTTPNetStream).hdsProperties.resource as DynamicStreamingResource);
                             var autoLabel:String = "Auto";
                             _qualityLevels.push({label:autoLabel,pos:-1});
@@ -505,8 +505,11 @@ import org.osmf.utils.TimeUtil;
          * Should return the amount of media that has been buffered, in seconds, or 0 if
          * this value is unknown or unable to be determined (due to lack of duration data, etc)
          */
-        public function get buffered():Number {
-            return _mediaPlayer.currentTime + _mediaPlayer.bufferLength;
+        public function get buffered():Array {
+            if(duration > 0){
+                return [[0, _mediaPlayer.currentTime + _mediaPlayer.bufferLength]];
+            }
+            return [];
         }
 
         /**

@@ -23,6 +23,8 @@ package com.videojs{
     public class VideoJSView extends Sprite{
 
         private var _uiVideo:Video;
+        private var _uiPosterContainer:Sprite;
+        private var _uiPosterImage:Loader;
         private var _uiBackground:Sprite;
         private var _uiSpriteVideo:Sprite;
 
@@ -62,8 +64,6 @@ package com.videojs{
 
             _model.videoReference = _uiVideo;
             _model.spriteReference = _uiSpriteVideo;
-        }
-
         }
 
 
@@ -126,6 +126,10 @@ package com.videojs{
             _uiBackground.graphics.drawRect(0, 0, _model.stageRect.width, _model.stageRect.height);
             _uiBackground.graphics.endFill();
             sizeVideoObject();
+        }
+
+        private function onStreamStart(e:VideoPlaybackEvent):void{
+            _uiPosterImage.visible = false;
         }
 
         private function onMetaData(e:VideoPlaybackEvent):void{

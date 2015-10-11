@@ -23,7 +23,7 @@ package com.videojs.providers{
   import org.mangui.hls.utils.Params2Settings;
   import org.mangui.hls.model.Level;
 
-  public class HLSProvider implements IProvider {
+  public class HLSVideoProvider implements IProvider {
 
         private var _loop:Boolean = false;
         private var _looping:Boolean = false;
@@ -52,7 +52,7 @@ package com.videojs.providers{
         private var _bytesTotal:Number = 0;
         private var _bufferedTime:Number = 0;
 
-        public function HLSProvider() {
+        public function HLSVideoProvider() {
           Log.info("https://github.com/mangui/flashls/releases/tag/v0.4.1.1");
           _hls = new HLS();
 	  _levelSelected = -1;
@@ -270,8 +270,11 @@ package com.videojs.providers{
          * Should return the amount of media that has been buffered, in seconds, or 0 if
          * this value is unknown or unable to be determined (due to lack of duration data, etc)
          */
-        public function get buffered():Number {
-          return _bufferedTime;
+        public function get buffered():Array {
+            if(duration > 0){
+                return [[0, _bufferedTime]];
+            }
+            return [];
         }
 
         /**

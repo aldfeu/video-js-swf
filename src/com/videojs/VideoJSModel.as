@@ -1,5 +1,4 @@
 package com.videojs{
-    import com.videojs.utils.Console;
 
     import com.videojs.events.VideoJSEvent;
     import com.videojs.events.VideoPlaybackEvent;
@@ -42,13 +41,11 @@ package com.videojs{
         private var _backgroundAlpha:Number = 0;
         private var _volume:Number = 1;
         private var _autoplay:Boolean = false;
-        private var _preload:Boolean = true;
+        private var _preload:String = "auto";
         private var _loop:Boolean = false;
         private var _src:String = "";
         private var _rtmpConnectionURL:String = "";
         private var _rtmpStream:String = "";
-        private var _poster:String = "";
-        private var _parameters:Object;
 
         private static var _instance:VideoJSModel;
 
@@ -226,17 +223,16 @@ package com.videojs{
                 _currentPlaybackType = PlaybackType.HDS;
             }
             else{
-                _currentPlaybackType = PlaybackType.HTTP;
+            _currentPlaybackType = PlaybackType.HTTP;
             }
             broadcastEventExternally(ExternalEventName.ON_SRC_CHANGE, _src);
             initProvider();
-
-            if (_preload){
-                load();
+            if(_autoplay){
+                _provider.play();
             }
-//            if(_autoplay){
-//                play();
-//            }
+            else if(_preload == "auto"){
+                _provider.load();
+            }
         }
 
         public function get rtmpConnectionURL():String{
@@ -293,24 +289,11 @@ package com.videojs{
             Console.log('srcFromFlashVars play', _currentPlaybackType);
             initProvider();
             if(_autoplay){
-                play();
+                _provider.play();
             }
-        }
-
-
-        public function get poster():String{
-            return _poster;
-        }
-        public function set poster(pValue:String):void {
-            _poster = pValue;
-            broadcastEvent(new VideoJSEvent(VideoJSEvent.POSTER_SET));
-        }
-
-        public function get parameters():Object{
-            return _parameters;
-        }
-        public function set parameters(pValue:Object):void{
-            _parameters = pValue;
+            else if(_preload == "auto"){
+                _provider.load();
+            }
         }
 
         public function get hasEnded():Boolean{
@@ -368,10 +351,10 @@ package com.videojs{
 
         }
 
-        public function get preload():Boolean{
+        public function get preload():String{
             return _preload;
         }
-        public function set preload(pValue:Boolean):void {
+        public function set preload(pValue:String):void {
             _preload = pValue;
         }
 
@@ -382,11 +365,11 @@ package com.videojs{
             _loop = pValue;
         }
 
-        public function get buffered():Number{
+        public function get buffered():Array{
             if(_provider){
                 return _provider.buffered;
             }
-            return 0;
+            return [];
         }
 
         /**
@@ -666,7 +649,7 @@ package com.videojs{
             } else if (obj is Array) {
                 var __sanitizedArray:Array = new Array();
 
-                for each (var __item:* in obj){
+                for each (var __item in obj){
                     __sanitizedArray.push(cleanObject(__item));
                 }
 
@@ -674,7 +657,7 @@ package com.videojs{
             } else if (typeof(obj) == 'object') {
                 var __sanitizedObject:Object = new Object();
 
-                for (var __i:* in obj){
+                for (var __i in obj){
                     __sanitizedObject[__i] = cleanObject(obj[__i]);
                 }
 
@@ -710,25 +693,22 @@ package com.videojs{
                         _provider = new RTMPVideoProvider();
                         _provider.attachVideo(_videoReference);
                         _provider.init(__src, _autoplay);
-                    }
-                    else if(_currentPlaybackType == PlaybackType.HLS){
+                    } else if(_currentPlaybackType == PlaybackType.HLS){
                         __src = {
-                            m3u8: _src,
-                            parameters: _parameters
+                            m3u8: _src
                         };
-                        _provider = new HLSProvider();
+                        _provider = new HLSVideoProvider();
                         _provider.attachVideo(_videoReference);
                         _provider.init(__src, _autoplay);
-                    }
-                    else if(_currentPlaybackType == PlaybackType.HDS){
+                    } else if(_currentPlaybackType == PlaybackType.HDS){
                         __src = {
-                            f4m: _src,
-                            parameters: _parameters
+                            f4m: _src
                         };
-                        _provider = new HDSProvider();
+                        _provider = new HDSVideoProvider();
                         _provider.attachSprite(_spriteReference);
                         _provider.init(__src, _autoplay);
                     }
+
                     break;
                 case PlayerMode.AUDIO:
                     __src = {

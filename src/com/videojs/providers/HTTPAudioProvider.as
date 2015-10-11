@@ -130,11 +130,11 @@ package com.videojs.providers{
             throw "HTTPAudioProvider does not support discontinuities";
         }
 
-        public function get buffered():Number{
+        public function get buffered():Array{
             if(duration > 0){
-                return (bytesLoaded / bytesTotal) * duration;
+                return [[0, (bytesLoaded / bytesTotal) * duration]];
             }
-            return 0;
+            return [];
         }
 
         public function get bufferedBytesEnd():int{
@@ -376,7 +376,7 @@ package com.videojs.providers{
                 }
             }
         }
-        
+
         // This provider supports a stream with single level.
         public function get numberOfLevels():int{
             return 1;

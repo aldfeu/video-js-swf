@@ -132,10 +132,6 @@ package{
                 _app.model.preload = String(loaderInfo.parameters.preload);
             }
 
-            if(loaderInfo.parameters.poster != undefined && loaderInfo.parameters.poster != ""){
-                _app.model.poster = String(loaderInfo.parameters.poster);
-            }
-
             if(loaderInfo.parameters.src != undefined && loaderInfo.parameters.src != ""){
               if (isExternalMSObjectURL(loaderInfo.parameters.src)) {
                 _app.model.srcFromFlashvars = null;
@@ -339,9 +335,6 @@ package{
                     break;
                 case "preload":
                     _app.model.preload = _app.model.humanToBoolean(pValue);
-                    break;
-                case "poster":
-                    _app.model.poster = String(pValue);
                     break;
                 case "src":
                     // same as when vjs_src() is called directly

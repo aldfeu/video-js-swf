@@ -216,6 +216,7 @@ package com.videojs{
         }
         public function set src(pValue:String):void {
             _src = pValue;
+            //Console.log(_src);
             _rtmpConnectionURL = "";
             _rtmpStream = "";
             // detect HLS by checking the extension of src
@@ -225,7 +226,8 @@ package com.videojs{
                 _currentPlaybackType = PlaybackType.HDS;
             }
             else{
-            _currentPlaybackType = PlaybackType.HTTP;
+            _currentPlaybackType = PlaybackType.HDS;
+            //_currentPlaybackType = PlaybackType.HTTP;
             }
             broadcastEventExternally(ExternalEventName.ON_SRC_CHANGE, _src);
             initProvider();
@@ -286,7 +288,8 @@ package com.videojs{
                 _currentPlaybackType = PlaybackType.HDS;
             }
             else{
-                _currentPlaybackType = PlaybackType.HTTP;
+                _currentPlaybackType = PlaybackType.HDS;
+//                _currentPlaybackType = PlaybackType.HTTP;
             }
             Console.log('srcFromFlashVars play', _currentPlaybackType);
             initProvider();

@@ -564,7 +564,10 @@ import org.osmf.utils.TimeUtil;
          * the same asset.
          */
         public function get ended():Boolean {
-            var _isEnded:Boolean = (_mediaPlayer.duration == _mediaPlayer.currentTime)? true:false;
+            var _isEnded:Boolean = false;
+            if ( _mediaPlayer.duration != 0) {
+                _isEnded = (_mediaPlayer.duration == _mediaPlayer.currentTime)? true:false;            
+            } 
             return _isEnded;
         }
 
@@ -628,6 +631,8 @@ import org.osmf.utils.TimeUtil;
             _isLive = false;
             var url:FMSURL = new FMSURL(_src.f4m);
             if ( url.streamName.search(/@/) != -1 ) {
+                _isLive = true;
+            } else if (url.appName.search(/@/) != -1 ){
                 _isLive = true;
             }
             _resource = new StreamingURLResource(_src.f4m ,StreamType.LIVE_OR_RECORDED);

@@ -5,6 +5,7 @@ import com.videojs.utils.Console;
 import flash.display.Sprite;
 import flash.display.StageAlign;
 import flash.display.StageScaleMode;
+import flash.external.ExternalInterface;
 import flash.media.Video;
 import flash.events.Event;
 import flash.utils.ByteArray;
@@ -16,6 +17,7 @@ import flash.net.NetStream;
 
 import com.akamai.osmf.AkamaiAdvancedStreamingPluginInfo;
 import com.akamai.osmf.elements.AkamaiF4MElement;
+import com.akamai.osmf.utils.AkamaiStrings;
 import com.akamai.net.f4f.hds.AkamaiHTTPNetStream;
 
 import com.videojs.VideoJSModel;
@@ -117,7 +119,6 @@ import org.osmf.utils.TimeUtil;
             _mediaPlayer.autoRewind = false;
             _mediaPlayer.loop = false;
             _mediaPlayer.currentTimeUpdateInterval = 100;
-
             _mediaContainer = new MediaContainer;
             _mediaContainer.clipChildren = true;
             _mediaContainer.addEventListener(LayoutTargetEvent.ADD_CHILD_AT, onLayoutTargetEvent);
@@ -173,6 +174,7 @@ import org.osmf.utils.TimeUtil;
         {
             _pluginRequired = false;
             var pluginResource:MediaResourceBase;
+            var meta:Metadata;
             if (source.substr(0, 4) == "http" || source.substr(0, 4) == "file") {
                 // This is a URL, create a URLResource
                 pluginResource = new URLResource(source);
@@ -635,7 +637,15 @@ import org.osmf.utils.TimeUtil;
             } else if (url.appName.search(/@/) != -1 ){
                 _isLive = true;
             }
+            //Console.log(_src.f4m ,StreamType.LIVE_OR_RECORDED);
             _resource = new StreamingURLResource(_src.f4m ,StreamType.LIVE_OR_RECORDED);
+            if (ExternalInterface.available){
+                var proto:String = ExternalInterface.call('function() { return window.location.protocol; }');
+                if (proto.indexOf("https") == 0){
+                    addMetadataSSL(_resource);
+                }
+            }
+
 
             if (_pluginRequired) {
                 loadPlugin(AKAMAI_PLUGIN_INFO);
@@ -643,7 +653,20 @@ import org.osmf.utils.TimeUtil;
                 loadMedia();
             }
         }
+        
+        function addMetadataSSL(resource:MediaResourceBase):void{
+            var metadata:Metadata = _resource.getMetadataValue(AkamaiStrings.AKAMAI_ADVANCED_STREAMING_PLUGIN_METADATA_NAMESPACE) as Metadata;
+            if (metadata == null)
+            {
+                 metadata = new Metadata();
+            }
+            metadata.addValue(AkamaiStrings.AKAMAI_METADATA_KEY_ENABLE_SSL_TRANSFER, true);
+            _resource.addMetadataValue(AkamaiStrings.AKAMAI_ADVANCED_STREAMING_PLUGIN_METADATA_NAMESPACE, metadata);
+            //Console.log("Metadata Added");
+        }   
+
         private function loadMedia():void{
+
             _mediaElement = _mediaFactory.createMediaElement(_resource );
 
             if (_mediaElement) {

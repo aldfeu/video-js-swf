@@ -291,7 +291,7 @@ package com.videojs{
                 _currentPlaybackType = PlaybackType.HDS;
 //                _currentPlaybackType = PlaybackType.HTTP;
             }
-            Console.log('srcFromFlashVars play', _currentPlaybackType);
+            //Console.log('srcFromFlashVars play', _currentPlaybackType);
             initProvider();
             if(_autoplay){
                 _provider.play();

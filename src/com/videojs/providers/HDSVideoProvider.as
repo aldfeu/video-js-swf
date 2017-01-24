@@ -629,7 +629,17 @@ import org.osmf.utils.TimeUtil;
                     return;
                 }
             }
-
+            var https:Boolean = false;
+            if (ExternalInterface.available){
+                var proto:String = ExternalInterface.call('function() { return window.location.protocol; }');
+                //Console.log(proto, proto.indexOf("https"));
+                if (proto.indexOf("https") == 0){
+                    https = true;
+                } else if (_src.f4m.indexOf("https") == 0){
+                    _src.f4m = _src.f4m.replace("https","http");
+                    //Console.log(_src.f4m);
+                }
+            }
             _isLive = false;
             var url:FMSURL = new FMSURL(_src.f4m);
             if ( url.streamName.search(/@/) != -1 ) {
@@ -639,11 +649,8 @@ import org.osmf.utils.TimeUtil;
             }
             //Console.log(_src.f4m ,StreamType.LIVE_OR_RECORDED);
             _resource = new StreamingURLResource(_src.f4m ,StreamType.LIVE_OR_RECORDED);
-            if (ExternalInterface.available){
-                var proto:String = ExternalInterface.call('function() { return window.location.protocol; }');
-                if (proto.indexOf("https") == 0){
-                    addMetadataSSL(_resource);
-                }
+            if (https){
+                addMetadataSSL(_resource);
             }
 
 
